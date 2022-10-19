@@ -5,7 +5,9 @@ import (
 	"github.com/ruixijiejie/blog-service/global"
 	"github.com/ruixijiejie/blog-service/internal/model"
 	"github.com/ruixijiejie/blog-service/internal/routers"
+	"github.com/ruixijiejie/blog-service/pkg/logger"
 	"github.com/ruixijiejie/blog-service/pkg/setting"
+	"gopkg.in/natefinch/lumberjack.v2"
 	"log"
 	"net/http"
 	"time"
@@ -20,8 +22,16 @@ func init() {
 	if err != nil {
 		log.Fatalf("init.setupDBEngine err: %v", err)
 	}
+	err = setupLogger()
+	if err != nil {
+		log.Fatalf("init.setupLogger err: %v", err)
+	}
 }
 
+// @title 博客系统
+// @version 1.0
+// @description blog service
+// @termsOfService https://github.com/ruixijiejie/blog-service
 func main() {
 	gin.SetMode(global.ServerSetting.RunMode)
 	router := routers.NewRouter()
@@ -66,5 +76,15 @@ func setupDBEngine() error {
 	if err != nil {
 		return err
 	}
+	return nil
+}
+
+func setupLogger() error {
+	global.Logger = logger.NewLogger(&lumberjack.Logger{
+		Filename:  global.AppSetting.LogSavePath + "/" + global.AppSetting.LogFileName + global.AppSetting.LogFileExt,
+		MaxSize:   600,
+		MaxAge:    10,
+		LocalTime: true,
+	}, "", log.LstdFlags).WithCaller(2)
 	return nil
 }
